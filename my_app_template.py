@@ -42,10 +42,13 @@ SERVER_PORT=8989
 JWT_KEY=2e381a02-083f-4a82-aaa6-3902a76739a6f776d88c-9b0d-4e35-942a-65300f1b6162
 JWT_ALGORITHM=HS256
 JWT_EXPIRATION=7 #days
-
 '''
 env_path = Path().resolve() / '.env'
 if not os.path.exists(env_path):
+    with open(env_path, 'w') as file:
+        file.write(env_to_write)
+        print("Successfully created .env.")
+else:
     with open(env_path, 'w') as file:
         file.write(env_to_write)
         print("Successfully created .env.")
@@ -291,13 +294,13 @@ app_main_file_path = 'app/main'
 security_file_path ='app/src/core/security'
 dependencies_file_path = 'app/src/core/dependencies'
 constants_file_path =  'app/src/core/constants'
-
+interface_crud_file_path = 'app/src/domain/interface/aql_crud_interface'
 
 # for folders
 files = [app_main_file_path,
          security_file_path ,
          dependencies_file_path,
-         constants_file_path]
+         constants_file_path,interface_crud_file_path]
 
 init_file = '__init__.py'
 
@@ -802,28 +805,60 @@ class AppSecurity:
         return hashlib.sha256(token.encode()).hexdigest()
 '''
 
-if not os.path.exists(security_file_path):
+if not os.path.exists(security_file_path +'.py'):
     with open(security_file_path, 'w') as file:
         file.write(to_write_in_security)
-        print(f"Successfully write file in {security_file_path}")
+        print(f"Successfully write file in {security_file_path +'.py'}")
 else:
-    with open(security_file_path, 'w') as file:
+    with open(security_file_path +'.py', 'w') as file:
         file.write(to_write_in_security)
-        print(f"Successfully write file in {security_file_path}")
+        print(f"Successfully write file in {security_file_path +'.py'}")
 
 to_write_in_dependency = '''from typing import Annotated, Any, AsyncGenerator, Optional
-from app.src.infrastructure.db import LocalSession
-from app.src.infrastructure.db.uow import SQLUnitOfWork
+from app.src.database.db import LocalSession
+from app.src.database.uow import SQLUnitOfWork
 async def get_uow() -> AsyncGenerator[SQLUnitOfWork, Any]:
     async with LocalSession() as session:
         async with SQLUnitOfWork(session) as uow:
             yield uow
 '''
-if not os.path.exists(dependencies_file_path):
+if not os.path.exists(dependencies_file_path+'.py'):
     with open(dependencies_file_path, 'w') as file:
         file.write(to_write_in_dependency)
-        print(f"Successfully write file in {dependencies_file_path}")
+        print(f"Successfully write file in {dependencies_file_path+'.py'}")
 else:
-    with open(dependencies_file_path, 'w') as file:
+    with open(dependencies_file_path+'.py', 'w') as file:
         file.write(to_write_in_dependency)
-        print(f"Successfully write file in {dependencies_file_path}")
+        print(f"Successfully write file in {dependencies_file_path+'.py'}")
+
+to_write_in_interface = '''from typing import Protocol, TypeVar
+
+T = TypeVar('T')
+
+
+class SQLCrudInterface[T](Protocol):
+    
+    async def insert_record(self, record: T):
+        pass
+    
+    async def find_record(self, record_id: str):
+        pass
+    
+    async def update_record(self, record_id: str, data: dict | None = None):
+        pass
+    
+    async def delete_record(self, record_id: str):
+        pass
+    
+    async def soft_delete_record(self, record_id: str) -> None:
+        pass
+
+'''
+if not os.path.exists(interface_crud_file_path+'.py'):
+    with open(interface_crud_file_path, 'w') as file:
+        file.write(to_write_in_interface)
+        print(f"Successfully write file in {interface_crud_file_path+'.py'}")
+else:
+    with open(interface_crud_file_path+'.py', 'w') as file:
+        file.write(to_write_in_interface)
+        print(f"Successfully write file in {interface_crud_file_path+'.py'}")
