@@ -20,18 +20,27 @@ __pycache__/
 git_ignore_path = Path().parent.resolve() / '.gitignore'
 if not os.path.exists(git_ignore_path):
     with open(git_ignore_path, 'w') as file:
-        file.write("/.venv\n")
-        file.write("/.idea\n")
-        file.write("/.vscode\n")
-        file.write("*.env\n")
-        f
+        file.write(gitignore_to_write)
         print("Successfully created .gitignore.")
 
 # for .env file
+env_to_write = '''DB_USER='change me'
+DB_PASSWORD='change me'
+DB_HOST='change me'
+DB_PORT='change me'
+DB_NAME='change me'
+B_PROD_USER='change me'
+DB_PROD_PASSWORD='change me'
+DB_PROD_HOST='change me'
+DB_PROD_PORT='change me'
+DB_PROD_NAME='change me'
+ENVIRONMENT='Dev'
+SERVER_PORT=8989
+'''
 env_path = Path().resolve() / '.env'
 if not os.path.exists(env_path):
     with open(env_path, 'w') as file:
-        file.write("")
+        file.write(env_to_write)
         print("Successfully created .env.")
 
 # for docker compose.yaml
@@ -49,22 +58,23 @@ if not os.path.exists(read_me_path):
         print("Successfully created readme.md.")
 
 # for requirements.txt
+requirements_to_write = '''fastapi[standard]
+sqlmodel
+asyncpg
+pydantic-settings
+python-dotenv
+passlib[argon2]
+python-jose[cryptography]
+requests
+msgpack
+fernet
+tenacity
+python-json-logger
+'''
 requirements_path = Path().resolve() / 'requirements.txt'
 if not os.path.exists(requirements_path):
     with open(requirements_path, 'w') as file:
-        file.write("fastapi[standard]\n")
-        file.write("sqlmodel\n")
-        file.write("asyncpg\n")
-        file.write("pydantic-settings\n")
-        file.write("python-dotenv\n")
-        file.write("passlib[argon2]\n")
-        file.write("python-jose[cryptography]\n")
-        file.write("requests\n")
-        file.write("msgpack\n")
-        file.write("fernet\n")
-        file.write("tenacity\n")
-        file.write("python-json-logger\n")
-
+        file.write(requirements_to_write)
         print("Successfully created requirements.txt.")
 
 # for pyproject.toml
