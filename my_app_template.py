@@ -42,6 +42,16 @@ SERVER_PORT=8989
 JWT_KEY=2e381a02-083f-4a82-aaa6-3902a76739a6f776d88c-9b0d-4e35-942a-65300f1b6162
 JWT_ALGORITHM=HS256
 JWT_EXPIRATION=7 #days
+
+MAIL_USERNAME=change me
+MAIL_PASSWORD=change me
+MAIL_FROM=change me
+MAIL_PORT=587 
+MAIL_SERVER=smtp.gmail.com
+MAIL_STARTTLS=True #False in prod
+MAIL_SSL_TLS=False #True in Prod
+MAIL_USE_CREDENTIALS=True
+MAIL_VALIDATE_CERTS=True
 '''
 env_path = Path().resolve() / '.env'
 if not os.path.exists(env_path):
@@ -362,31 +372,6 @@ else:
         print("Successfully write file in main.py")
 
 
-#To insert a data into .env file
-data_to_write_in_env = '''DB_USER='change me'
-DB_PASSWORD='change me'
-DB_HOST='change me'
-DB_PORT='change me'
-DB_NAME='change me'
-B_PROD_USER='change me'
-DB_PROD_PASSWORD='change me'
-DB_PROD_HOST='change me'
-DB_PROD_PORT='change me'
-DB_PROD_NAME='change me'
-ENVIRONMENT='Dev'
-SERVER_PORT=8989
-
-'''
-
-if not os.path.exists(env_path):
-    with open(env_path, 'w') as file:
-        file.write(data_to_write_in_env)
-        print(f"Successfully write file in {env_path}")
-else:
-    with open(env_path, 'w') as file:
-        file.write(data_to_write_in_env)
-        print(f"Successfully write file in {env_path}")
-
 #to insert into constant file
 data_to_insert_in_constants ='''import os
 from pathlib import Path
@@ -427,7 +412,16 @@ class Constants(BaseSettings):
 
     STATIC_PATH: str = os.path.abspath(os.path.join(os.curdir, 'static'))
 
-    # for prefix in http
+     # For sending email in localhost
+    MAIL_USERNAME: str
+    MAIL_PASSWORD: SecretStr
+    MAIL_FROM: str | EmailStr
+    MAIL_PORT: int
+    MAIL_SERVER: str
+    MAIL_STARTTLS: bool
+    MAIL_SSL_TLS: bool
+    MAIL_USE_CREDENTIALS: bool
+    MAIL_VALIDATE_CERTS: bool
 
     model_config = SettingsConfigDict(
             env_file='../../../.example.env'
