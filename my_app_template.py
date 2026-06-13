@@ -34,8 +34,15 @@ DB_PROD_PASSWORD='change me'
 DB_PROD_HOST='change me'
 DB_PROD_PORT='change me'
 DB_PROD_NAME='change me'
+
 ENVIRONMENT='Dev'
 SERVER_PORT=8989
+
+#JWT
+JWT_KEY=2e381a02-083f-4a82-aaa6-3902a76739a6f776d88c-9b0d-4e35-942a-65300f1b6162
+JWT_ALGORITHM=HS256
+JWT_EXPIRATION=7 #days
+
 '''
 env_path = Path().resolve() / '.env'
 if not os.path.exists(env_path):
@@ -388,6 +395,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 load_dotenv()
 
 class Constants(BaseSettings):
+
+    # this is for jwt configuration
+    JWT_KEY: str
+    JWT_ALGORITHM: str
+    JWT_EXPIRATION: int
+    
     ENVIRONMENT: str
     # this is for database
     DB_USER: str
@@ -692,3 +705,125 @@ else:
     with open(exceptions_http_path, 'w') as file:
         file.write(to_write_in_http_exception)
         print(f"Successfully write file in {exceptions_http_path}")
+
+
+#to write in security file
+to_write_in_security = '''import hashlib
+import secrets
+from datetime import datetime, timedelta, timezone
+
+from jose import ExpiredSignatureError, jwt
+from passlib.context import CryptContext
+
+from app.src.core.constants import Constants
+from app.src.exceptions.domain_exceptions import DomainJWTExpiredError, DomainJWTInvalidError
+
+constants = Constants()
+
+
+class AppSecurity:
+    
+    __context = CryptContext(schemes=["argon2"], deprecated="auto")
+    
+    @classmethod
+    def hash_plain_password(cls, plain_password):
+        
+        # return the plain password if it's empty
+        if not plain_password:
+            return plain_password
+        
+        # then hash the password and remove the leading and trailing spaces
+        return cls.__context.hash(plain_password.strip())
+    
+    @classmethod
+    def verify_hash_password(cls, plain_password, hashed_password):
+        """
+        This function is the verify if the inputted password is match to the hashed password.
+        :param plain_password: is a user input.
+        :param hashed_password: the hashed password.
+        :return: True,if matched, otherwise False.
+        """
+        # return false if the hashed password is empty.
+        if not hashed_password:
+            return False
+        
+        # return false if the plain password is empty.
+        if not plain_password:
+            return False
+        
+        # return True if matched, otherwise false
+        return cls.__context.verify(plain_password, hashed_password)
+    
+    @classmethod
+    def generate_access_token(cls, *, jti: str, data: dict, exp: int = 0):
+        """
+
+        This function is to generate an access token.
+        :param jti: is the unique identifier of a token.
+        :param data: is the data to encrypt in the token.
+        :param exp: short for expiration. This is how long the token can use.
+        :return: access token.
+
+        """
+        to_encode = data.copy()
+        # 5 min is the default life of token if not specified the exp parameter.
+        expiration = datetime.now(timezone.utc) + timedelta(minutes=5) if exp <= 0 else datetime.now(
+                timezone.utc) + timedelta(seconds=exp)
+        
+        to_encode.update({"jti": jti, "exp": expiration})
+        
+        access_token = jwt.encode(to_encode, key=constants.JWT_KEY, algorithm=constants.JWT_ALGORITHM)
+        return access_token
+    
+    @staticmethod
+    def decode_jwt_token(token: str, verify_exp=True):
+
+        try:
+            if not token:
+                raise DomainJWTInvalidError(message="Invalid token, cannot validate. Please back to login.")
+            
+            # decode the token
+            payload = jwt.decode(token, key=constants.JWT_KEY, algorithms=[constants.JWT_ALGORITHM],
+                                 options={'verify_exp': verify_exp})
+            
+            if not payload:
+                # then raise an exception
+                raise DomainJWTInvalidError("Couldn't validate token credentials. Please back to login.")
+            # return the data
+            return payload
+        except ExpiredSignatureError:
+            raise DomainJWTExpiredError("Your token is expired. Please back to login.")
+        except Exception as e:
+            raise e
+   
+    
+    @staticmethod
+    def hash_token(token: str):
+        return hashlib.sha256(token.encode()).hexdigest()
+'''
+
+if not os.path.exists(security_file_path):
+    with open(security_file_path, 'w') as file:
+        file.write(to_write_in_security)
+        print(f"Successfully write file in {security_file_path}")
+else:
+    with open(security_file_path, 'w') as file:
+        file.write(to_write_in_security)
+        print(f"Successfully write file in {security_file_path}")
+
+to_write_in_dependency = '''from typing import Annotated, Any, AsyncGenerator, Optional
+from app.src.infrastructure.db import LocalSession
+from app.src.infrastructure.db.uow import SQLUnitOfWork
+async def get_uow() -> AsyncGenerator[SQLUnitOfWork, Any]:
+    async with LocalSession() as session:
+        async with SQLUnitOfWork(session) as uow:
+            yield uow
+'''
+if not os.path.exists(dependencies_file_path):
+    with open(dependencies_file_path, 'w') as file:
+        file.write(to_write_in_dependency)
+        print(f"Successfully write file in {dependencies_file_path}")
+else:
+    with open(dependencies_file_path, 'w') as file:
+        file.write(to_write_in_dependency)
+        print(f"Successfully write file in {dependencies_file_path}")
