@@ -24,18 +24,18 @@ if not os.path.exists(git_ignore_path):
         print("Successfully created .gitignore.")
 
 # for .env file
-env_to_write = '''DB_USER='change me'
-DB_PASSWORD='change me'
-DB_HOST='change me'
-DB_PORT='change me'
-DB_NAME='change me'
-B_PROD_USER='change me'
-DB_PROD_PASSWORD='change me'
-DB_PROD_HOST='change me'
-DB_PROD_PORT='change me'
-DB_PROD_NAME='change me'
+env_to_write = '''DB_USER=change me
+DB_PASSWORD=change me
+DB_HOST=change me
+DB_PORT=change me
+DB_NAME=change me
+B_PROD_USER=change me
+DB_PROD_PASSWORD=change me
+DB_PROD_HOST=change me
+DB_PROD_PORT=0
+DB_PROD_NAME=change me
 
-ENVIRONMENT='Dev'
+ENVIRONMENT=Dev
 SERVER_PORT=8989
 
 #JWT
