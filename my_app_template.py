@@ -29,7 +29,8 @@ DB_PASSWORD=change me
 DB_HOST=change me
 DB_PORT=change me
 DB_NAME=change me
-B_PROD_USER=change me
+
+DB_PROD_USER=change me
 DB_PROD_PASSWORD=change me
 DB_PROD_HOST=change me
 DB_PROD_PORT=0
