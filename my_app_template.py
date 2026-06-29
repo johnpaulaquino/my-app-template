@@ -104,7 +104,7 @@ to_write_text_in_toml_if_not_exists = """
 name = "no-title"
 version = "0.1.0"
 description = "No clear description yet"
-
+requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]",
     "sqlmodel",
@@ -126,7 +126,7 @@ dependencies = [
 ]
 
 
-requires-python = ">=3.13"
+
 
 [build-system]
 requires = ["setuptools>=61.0"]
@@ -337,6 +337,29 @@ for file in files:
             print(f'Successfully created {file} file.')
 
 
+
+#insert tenacity for retry if encounter error and write it into services __init__.py
+to_wrote_in_services_init="""import asyncpg
+from sqlalchemy.exc import DBAPIError, OperationalError
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
+
+TransientErrors = (OperationalError, DBAPIError, asyncpg.PostgresError)
+retry_on_transient = retry(retry=retry_if_exception_type(TransientErrors),
+                           stop=stop_after_attempt(5),
+                           wait=wait_fixed(1),
+                           reraise=True, )
+
+"""
+services_init_filepath = SERVICES_FOLDER / init_file
+if not Path.exists(init_filepath):
+    with open(init_filepath, 'w') as file:
+        file.write(to_wrote_in_services_init)
+        print(f"Successfully write file on {services_init_filepath}")
+else:
+    with open(init_filepath, 'w') as file:
+        file.write(to_wrote_in_services_init)
+        print(f"Successfully write file on {services_init_filepath}")
+
 #====== to insert a text to those selected files=====
 # write data for main.py file
 data_to_write_in_main = '''
@@ -344,6 +367,7 @@ import sys
 from fastapi import FastAPI
 import uvicorn
 
+app = FastAPI()
 
 def start():
     """Entry point for the 'server' command in pyproject.toml"""
@@ -353,6 +377,7 @@ def start():
             host="0.0.0.0",
             port=8000,
             workers=4,
+            reload=True,
             loop=use_loop,  # use uv loop for faster
             proxy_headers=True,
             forwarded_allow_ips="*", )
@@ -399,6 +424,12 @@ class Constants(BaseSettings):
     DB_PORT: int
 
     SERVER_PORT: int
+    
+    # Cloudinary config
+    C_NAME: str
+    C_KEY: str
+    C_SECRET: str
+    C_SECURE: bool
 
     #production_env
     DB_PROD_USER :str
@@ -424,9 +455,6 @@ class Constants(BaseSettings):
     MAIL_USE_CREDENTIALS: bool
     MAIL_VALIDATE_CERTS: bool
 
-    model_config = SettingsConfigDict(
-            env_file='../../../.example.env'
-            )
 
 class EnvironmentStatus(str):
     DEVELOPMENT ="Dev"
