@@ -1,6 +1,12 @@
 import os
 from pathlib import Path
 
+
+
+def build_absolute_path(folder_name):
+    build_path = Path(folder_name).resolve()
+    return build_path
+
 #====== To create files including .env, .gignore, docker-compose.yaml, pyproject.toml, readme.md and requirements.txt===
 
 # ==== also create a text on specfic file
@@ -350,13 +356,13 @@ retry_on_transient = retry(retry=retry_if_exception_type(TransientErrors),
                            reraise=True, )
 
 """
-services_init_filepath = SERVICES_FOLDER / init_file
-if not Path.exists(init_filepath):
-    with open(init_filepath, 'w') as file:
+services_init_filepath =  build_absolute_path(SERVICES_FOLDER) / init_file
+if not Path.exists(services_init_filepath):
+    with open(services_init_filepath, 'w') as file:
         file.write(to_wrote_in_services_init)
         print(f"Successfully write file on {services_init_filepath}")
 else:
-    with open(init_filepath, 'w') as file:
+    with open(services_init_filepath, 'w') as file:
         file.write(to_wrote_in_services_init)
         print(f"Successfully write file on {services_init_filepath}")
 
@@ -542,7 +548,6 @@ else:
     with open(database_uow_path, 'w') as file:
         file.write(to_write_in_uow)
         print(f"Successfully write file in {database_uow_path}")
-
 to_write_in_init_exception = '''from fastapi import Request
 from starlette.responses import JSONResponse
 
@@ -578,7 +583,9 @@ def app_exception_handler(_: Request, exc: Exception):
                                  'status'     : "error",
                                  'message'    : "An unexpected error occurred."})
     '''
-exceptions_init_path = Path('app/src/exceptions').resolve() / '__init__.py'
+
+
+exceptions_init_path = Path('app/src/exceptions').resolve() / init_file
 
 if not os.path.exists(exceptions_init_path):
     with open(exceptions_init_path, 'w') as file:
@@ -588,6 +595,113 @@ else:
     with open(exceptions_init_path, 'w') as file:
         file.write(to_write_in_init_exception)
         print(f"Successfully write file in {exceptions_init_path}")
+
+#write file on utility init.py
+to_write_in_utility_init ="""from fastapi.encoders import jsonable_encoder
+from starlette.responses import JSONResponse
+
+from app.src.schema import SuccessfulResponseSchema
+
+
+def SuccessfulResponse(success_schema: SuccessfulResponseSchema):
+    message_content = {'status_code': success_schema.status_code,
+                       "status_message": success_schema.status_message,
+                       "message": success_schema.message}
+
+    if success_schema.verification_token is not None:
+        message_content.update({"verification_token": success_schema.verification_token})
+
+    if success_schema.csrf_token is not None:
+        message_content.update({"csrf_token": success_schema.csrf_token})
+
+    if success_schema.paginated is not None:
+        # to check if it's a paginated data
+        message_content.update({"paginated": jsonable_encoder(success_schema.paginated)})
+
+    if success_schema.refresh_token is not None:
+        # to check if it's a paginated data
+        message_content.update({"refresh_token": success_schema.refresh_token})
+    if success_schema.data is not None:
+        # to ch
+        message_content.update({"data": jsonable_encoder(success_schema.data)})
+
+    if success_schema.access_token is not None:
+        message_content.update({"access_token": success_schema.access_token,
+                                "access_type": 'Bearer'})
+
+    if success_schema.action is not None:
+        message_content.update({"action": success_schema.action})
+
+    if success_schema.headers is not None:
+        return JSONResponse(
+            status_code=success_schema.status_code,
+            content=message_content,
+            headers=success_schema.headers)
+
+    return JSONResponse(
+        status_code=success_schema.status_code,
+        content=message_content, )"""
+
+utility_init_path = build_absolute_path(UTILS_FOLDER) / init_file
+if not os.path.exists(utility_init_path):
+    with open(utility_init_path, 'w') as file:
+        file.write(to_write_in_utility_init)
+        print(f"Successfully write file in {utility_init_path}")
+else:
+    with open(utility_init_path, 'w') as file:
+        file.write(to_write_in_utility_init)
+        print(f"Successfully write file in {utility_init_path}")
+
+#write file on schema init.py
+to_write_in_schema_init ="""from typing import Any
+
+from pydantic import BaseModel, Field
+
+
+class CloudinaryImageSchema(BaseModel):
+    image_url : str
+    public_key : str
+
+
+
+class PaginatedOutput(BaseModel):
+    start_page: int
+    end_page: int
+    total_records: int
+    has_next: bool
+
+class SuccessfulResponseSchema(BaseModel):
+    message: str
+    headers: dict = None
+    status_code: int = None
+    status_message: str = "ok"
+    data: Any = None
+    access_token: str = None
+    refresh_token: str = None
+    csrf_token: str | None = None
+    action: str = None
+    paginated: PaginatedOutput | None = None
+    otp_code: str | None = None
+    verification_token : str | None = None
+    sign_up_steps: int | None = None
+    email: str | None = None
+
+
+class PaginatedSchema(BaseModel):
+    skip: int = Field(ge=1, default=1)
+    limit: int = Field(ge=10, default=10)"""
+
+schema_init_path = build_absolute_path(SCHEMA_FOLDER) / init_file
+if not os.path.exists(schema_init_path):
+    with open(schema_init_path, 'w') as file:
+        file.write(to_write_in_schema_init)
+        print(f"Successfully write file in {schema_init_path}")
+else:
+    with open(schema_init_path, 'w') as file:
+        file.write(to_write_in_schema_init)
+        print(f"Successfully write file in {schema_init_path}")
+
+
 
 # to write in domain exceptions
 exceptions_domain_path = Path('app/src/exceptions').resolve() / 'domain_exceptions.py'
